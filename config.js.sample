@@ -1,0 +1,5 @@
+var Config = {
+	API_KEY: 'YOUR_COLLECTA_API_KEY',
+	BOSH_SERVICE: 'http://collecta.com/xmpp-httpbind',
+	HOST: "guest.collecta.com"
+};
