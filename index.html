@@ -12,17 +12,29 @@
 
   <script type='text/javascript' src='config.js'></script>
   <script type='text/javascript' src='real-time-comparison.js'></script>
+
+ <style type="text/css">
+	.stream {border: 1px solid black; width: 400px; height: 400px; overflow: auto;}
+	.stream p {border-bottom: 1px dashed #AAA; margin: 0; padding: 5px; width: 100%; font-size: 15px;}
+	#term0panel {margin-left: 50px; float: left;}
+	#term1panel {margin-right: 50px; float: right;}
+	input {font-size: 30px;}
+ </style>
 </head>
 <body>
   <div id='login' style='text-align: center'>
     <form name='cred'>
-	  <input type='text' id='term1' value='' size="30" />
+	  <input type='text' id='term0' value='' size="20" style="text-align:right"/>
       <input type='button' id='go' value='go' />
-	  <input type='text' id='term2' value='' size="30" />
+	  <input type='text' id='term1' value='' size="20" />
     </form>
 	<span id="warning">Connecting...</span>
   </div>
   <hr />
-  <div id='log'></div>
+
+	<div class="stream" id="term0panel"></div>
+
+	<div class="stream" id="term1panel"></div>
+	
 </body>
 </html>
