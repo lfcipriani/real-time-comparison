@@ -2,13 +2,13 @@ This is a simple example on how to use XMPP, Strophejs and the Collecta API to a
 
 # Setup
 
-- Request an Collecta API key: <http://developer.collecta.com/KeyRequest/>
-- Copy config.js.sample to config.js and set your API key on the API_KEY field
-- Put all these files on any web server
+- Request an Collecta API key: <http://developer.collecta.com/KeyRequest/>;
+- Copy config.js.sample to config.js and set your API key on the API_KEY field;
+- Put all these files on any web server.
 
 # Use
 
-- Under construction
+- Just open the index.html on your web browser and type the 2 terms to be compared.
 
 # Links
 
