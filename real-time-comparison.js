@@ -1,7 +1,11 @@
-var connection = null;
-var anonymous_jid = null;
-var is_connected = false;
-var terms = [];
+var connection = null, anonymous_jid = null, terms;
+
+if(!window.console) {
+  window.console = new function() {
+    this.log = function(str) {};
+    this.dir = function(str) {};
+  };
+}
 
 var Collecta = {
 	subscribeSearchStanza: function(searchName) {
@@ -23,7 +27,38 @@ var Collecta = {
 				    	.c('unsubscribe', {node: 'search', jid: anonymous_jid});
 	},
 	processItem: function(item) {
+		var termIndex, category, title, description, url, published, result = [];
+		if (item.find('headers > header:first').text() == terms[0]) {
+			termIndex = 0;
+		} else {
+			termIndex = 1;
+		}
 		
+		item.find('items > item').each(function() {
+			category = $(this).find('entry > category:first').text();
+			title = $(this).find('entry > title:first').text();
+			description = $(this).find('entry > abstract:first').text();
+			published = $(this).find('entry > published').text();
+			
+			if (category == "update") {
+				url = $(this).find('entry > id:first').text();
+			} else if (category == "photo" || category == "video") {
+				url = $(this).find('entry > link[type="text/html"]:first').attr("href");
+			} else {
+				url = $(this).find('entry > link:first').attr('href');
+			}
+			
+			result.push({
+				term: termIndex,
+				category: category,
+				title: title,
+				description: description,
+				url: url,
+				published: published
+			});
+		});
+
+		return result;
 	}
 };
 
@@ -33,35 +68,20 @@ function startComparison() {
 	connection.send(Collecta.subscribeSearchStanza(terms[1]).tree());
 }
 
-function log(msg) 
-{
-    $('#log').append('<div></div>').append(document.createTextNode(msg));
-}
-
-function rawInput(data)
-{
-    log('RECV: ' + data);
-}
-
-function rawOutput(data)
-{
-    log('SENT: ' + data);
-}
-
 // ********* XMPP Callbacks *********
 
 function onConnect(status)
 {
     if (status == Strophe.Status.CONNECTING) {
-	log('Strophe is connecting.');
+		console.log('Strophe is connecting.');
     } else if (status == Strophe.Status.CONNFAIL) {
-	log('Strophe failed to connect.');
-	$('#connect').get(0).value = 'connect';
+		console.log('Strophe failed to connect.');
+		$('#go').get(0).value = 'go';
     } else if (status == Strophe.Status.DISCONNECTING) {
-	log('Strophe is disconnecting.');
+		console.log('Strophe is disconnecting.');
     } else if (status == Strophe.Status.DISCONNECTED) {
-	log('Strophe is disconnected.');
-	$('#connect').get(0).value = 'connect';
+		console.log('Strophe is disconnected.');
+		$('#go').get(0).value = 'go';
     } else if (status == Strophe.Status.CONNECTED) {
 		connection.addHandler(onPresence, null, 'presence', null, null, null);                       
 	    connection.addHandler(onIq, null, 'iq', null, null, null); 
@@ -91,31 +111,35 @@ function onIq(xml) {
 }
 
 function onMessage(msg) {
-    console.log(msg);
+    var result = Collecta.processItem($(msg));
+	for (var i=0; i < result.length; i++) {
+		$('#term'+ result[i].term +"panel")
+			.prepend("<p>["+result[i].category+"] - <a href=\""+result[i].url+"\" target=\"_blank\" title=\" Access "+terms[result[i].term]+" information\">"+result[i].title+"</a><br />..."+result[i].description+"...<br />Published in "+result[i].published+"</p>");
+	};
 	return true;
 }
 
-// ****************
+// ******** Initialize ********
 
 $(document).ready(function () {
 	$('#go').attr('disabled','disabled');
     connection = new Strophe.Connection(Config.BOSH_SERVICE);
-    connection.rawInput = rawInput;
-    connection.rawOutput = rawOutput;
 	connection.connect(Config.HOST, null, onConnect);
 
     $('#go').bind('click', function () {
 		var button = $('#go').get(0);
 		if (button.value == 'go') {
 		    button.value = 'stop';
+			$('#term0panel').empty();
+			$('#term1panel').empty();
+			terms = [];
+			terms.push($('#term0').val());
 			terms.push($('#term1').val());
-			terms.push($('#term2').val());
 		    startComparison();
 		} else {
 		    button.value = 'go';
 			console.log("Unsubscribing...");
 			connection.send(Collecta.unsubscribeStanza().tree());
-		    //connection.disconnect();
 		}
     });
 });
