@@ -1,14 +1,16 @@
-var connection = null, anonymous_jid = null, terms;
+var connection = null;
+var anonymous_jid = null;
+var terms;
 
 // avoiding problems when user has no Firebug console property set globally
 if(!window.console) {
   window.console = new function() {
-    this.log = function(str) {};
+    this.log = str => {};
   };
 }
 
 var Collecta = {
-	subscribeSearchStanza: function(searchName) {
+	subscribeSearchStanza(searchName) {
 		// generate XML for a search subscription on Collecta XMPP API
 		return $iq({type: 'set', from: anonymous_jid, to: 'search.collecta.com', id: searchName })
 			    	.c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
@@ -22,24 +24,31 @@ var Collecta = {
 								.up().up().c('field', {"var": 'x-collecta#query'})
 									.c('value').t(searchName);
 	},
-	unsubscribeStanza: function() {
+	unsubscribeStanza() {
 		// generate XML for search unsubscription on Collecta XMPP API
 		return $iq({type: 'set', from: anonymous_jid, to: 'search.collecta.com', id: 'unsubscribe42'})
 					.c('pubsub', {xmlns: 'http://jabber.org/protocol/pubsub'})
 				    	.c('unsubscribe', {node: 'search', jid: anonymous_jid});
 	},
-	processItem: function(item) {
-		// process XML returned by Collecta XMPP API (a pubsub event) and put the results on a JSON object
-		var termIndex, category, title, description, url, published, result = [];
-		
-		// identifyng which user entered term correpond to this search result
-		if (item.find('headers > header:first').text() == terms[0]) {
+	processItem(item) {
+        // process XML returned by Collecta XMPP API (a pubsub event) and put the results on a JSON object
+        var termIndex;
+
+        var category;
+        var title;
+        var description;
+        var url;
+        var published;
+        var result = [];
+
+        // identifyng which user entered term correpond to this search result
+        if (item.find('headers > header:first').text() == terms[0]) {
 			termIndex = 0;
 		} else {
 			termIndex = 1;
 		}
-		
-		item.find('items > item').each(function() {
+
+        item.find('items > item').each(function() {
 			category = $(this).find('entry > category:first').text();
 			title = $(this).find('entry > title:first').text();
 			description = $(this).find('entry > abstract:first').text();
@@ -55,16 +64,16 @@ var Collecta = {
 			
 			result.push({
 				term: termIndex,
-				category: category,
-				title: title,
-				description: description,
-				url: url,
-				published: published
+				category,
+				title,
+				description,
+				url,
+				published
 			});
 		});
 
-		return result;
-	}
+        return result;
+    }
 };
 
 function startComparison() {
@@ -76,10 +85,10 @@ function startComparison() {
 
 // ******** Initialization ********
 
-$(document).ready(function () {
+$(document).ready(() => {
 	$('#go').attr('disabled','disabled');
 	
-    $('#go').bind('click', function () {
+    $('#go').bind('click', () => {
 		var button = $('#go').get(0);
 		if (button.value == 'go') {
 		    button.value = 'stop';
